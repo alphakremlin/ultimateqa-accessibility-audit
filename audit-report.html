@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate QA Accessibility Audit — Ramone Scott</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; font-size: 13px; line-height: 1.6; }
+  .page { max-width: 900px; margin: 0 auto; background: #fff; }
+  .header { background: #0f172a; color: #fff; padding: 40px 48px 32px; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+  .brand { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #64748b; margin-bottom: 6px; }
+  .auditor-name { font-size: 20px; font-weight: 700; color: #f1f5f9; }
+  .auditor-title { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+  .badge { background: #0c4a6e; color: #7dd3fc; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; border-radius: 4px; }
+  .report-title { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .report-meta { display: flex; gap: 32px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #1e293b; flex-wrap: wrap; }
+  .meta-item label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #475569; margin-bottom: 3px; }
+  .meta-item span { font-size: 13px; color: #cbd5e1; font-weight: 500; }
+  .score-bar { background: #0f172a; padding: 0 48px 28px; display: flex; gap: 16px; }
+  .score-card { flex: 1; background: #1e293b; border-radius: 8px; padding: 16px 20px; text-align: center; }
+  .score-card .score-num { font-size: 32px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .score-card .score-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; }
+  .score-critical { color: #f87171; } .score-high { color: #fb923c; } .score-medium { color: #fbbf24; } .score-pass { color: #34d399; }
+  .verdict-wrap { background: #0f172a; padding: 0 48px 32px; }
+  .verdict { background: #1e293b; border-left: 4px solid #f87171; border-radius: 0 8px 8px 0; padding: 16px 20px; display: flex; align-items: center; gap: 16px; }
+  .verdict-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 2px; }
+  .verdict-text { font-size: 18px; font-weight: 800; color: #f87171; }
+  .verdict-score { margin-left: auto; text-align: right; }
+  .verdict-score .big { font-size: 36px; font-weight: 900; color: #f1f5f9; line-height: 1; }
+  .verdict-score .small { font-size: 11px; color: #475569; }
+  .body { padding: 40px 48px; background: #0f172a; }
+  .section { margin-bottom: 32px; background: #1e293b; border-radius: 10px; overflow: hidden; }
+  .section-header { background: #0f172a; padding: 14px 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #334155; }
+  .section-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .icon-bug { background: #7f1d1d; color: #fca5a5; } .icon-access { background: #1e3a5f; color: #93c5fd; } .icon-verdict { background: #14532d; color: #86efac; }
+  .section-title { font-size: 13px; font-weight: 700; color: #e2e8f0; text-transform: uppercase; letter-spacing: 1px; }
+  .section-body { padding: 24px; }
+  .bug-card { background: #0f172a; border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; border-left: 3px solid #334155; }
+  .bug-card:last-child { margin-bottom: 0; }
+  .bug-card.critical { border-left-color: #ef4444; } .bug-card.high { border-left-color: #f97316; } .bug-card.medium { border-left-color: #eab308; }
+  .bug-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; gap: 12px; }
+  .bug-title { font-size: 13px; font-weight: 700; color: #f1f5f9; }
+  .severity-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 3px 8px; border-radius: 3px; white-space: nowrap; }
+  .sev-critical { background: #450a0a; color: #fca5a5; } .sev-high { background: #431407; color: #fed7aa; } .sev-medium { background: #422006; color: #fde68a; }
+  .bug-row { display: grid; grid-template-columns: 90px 1fr; gap: 4px 12px; margin-top: 6px; }
+  .bug-row-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; padding-top: 1px; }
+  .bug-row-value { font-size: 12px; color: #94a3b8; } .bug-row-value.fix { color: #86efac; }
+  code { background: #0f172a; border: 1px solid #334155; padding: 1px 5px; border-radius: 3px; font-size: 11px; color: #7dd3fc; font-family: 'Consolas', monospace; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #0f172a; color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; padding: 10px 14px; text-align: left; border-bottom: 1px solid #334155; }
+  td { padding: 10px 14px; border-bottom: 1px solid #1e293b; color: #94a3b8; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .quick-wins { background: #0f172a; border-radius: 8px; padding: 20px 24px; }
+  .quick-wins h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #34d399; margin-bottom: 14px; }
+  .win-item { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+  .win-item:last-child { margin-bottom: 0; }
+  .win-num { width: 22px; height: 22px; border-radius: 50%; background: #14532d; color: #86efac; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .win-text { font-size: 12px; color: #94a3b8; padding-top: 2px; }
+  .footer { background: #020617; padding: 24px 48px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1e293b; }
+  .footer-left { font-size: 11px; color: #334155; } .footer-right { font-size: 11px; color: #334155; text-align: right; }
+  .footer-name { color: #64748b; font-weight: 600; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .section { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="brand">QA Audit Report</div>
+        <div class="auditor-name">Ramone Scott</div>
+        <div class="auditor-title">QA Engineer &nbsp;·&nbsp; Accessibility Auditing &nbsp;·&nbsp; WCAG 2.1 AA &nbsp;·&nbsp; HTML Validation</div>
+      </div>
+      <div class="badge">Accessibility</div>
+    </div>
+    <div class="report-title">Ultimate QA — HTML & Accessibility Audit</div>
+    <div class="report-meta">
+      <div class="meta-item"><label>Site</label><span>ultimateqa.com/simple-html-elements-for-automation</span></div>
+      <div class="meta-item"><label>Date</label><span>26 April 2026</span></div>
+      <div class="meta-item"><label>Standard</label><span>WCAG 2.1 AA</span></div>
+      <div class="meta-item"><label>Type</label><span>HTML Structure · Accessibility</span></div>
+    </div>
+  </div>
+  <div class="score-bar">
+    <div class="score-card"><div class="score-num score-critical">3</div><div class="score-label">Critical</div></div>
+    <div class="score-card"><div class="score-num score-high">4</div><div class="score-label">High</div></div>
+    <div class="score-card"><div class="score-num score-medium">2</div><div class="score-label">Medium</div></div>
+    <div class="score-card"><div class="score-num score-pass">1</div><div class="score-label">Passed</div></div>
+  </div>
+  <div class="verdict-wrap">
+    <div class="verdict">
+      <div><div class="verdict-label">Accessibility Standard</div><div class="verdict-text">FAILS WCAG 2.1 AA</div></div>
+      <div class="verdict-score"><div class="big">3<span style="font-size:18px;color:#475569">/10</span></div><div class="small">Accessibility Score</div></div>
+    </div>
+  </div>
+  <div class="body">
+
+    <div class="section">
+      <div class="section-header"><div class="section-icon icon-bug">🐛</div><div class="section-title">Evidence Collector — Bug Report</div></div>
+      <div class="section-body">
+        <div class="bug-card critical">
+          <div class="bug-header"><div class="bug-title">Bug #1 — id="button1" Duplicated 5 Times</div><span class="severity-badge sev-critical">Critical</span></div>
+          <div class="bug-row"><span class="bug-row-label">Detail</span><span class="bug-row-value">The attribute <code>id="button1"</code> appears on 5 separate elements. HTML IDs must be unique. <code>getElementById("button1")</code> returns only the first match. Breaks automation selectors and screen readers.</span></div>
+          <div class="bug-row"><span class="bug-row-label">Fix</span><span class="bug-row-value fix">Assign unique IDs to each button: <code>button1</code>, <code>button1-b</code>, <code>button1-c</code>, etc.</span></div>
+        </div>
+        <div class="bug-card critical">
+          <div class="bug-header"><div class="bug-title">Bug #2 — Radio Buttons Have No Programmatic Labels</div><span class="severity-badge sev-critical">Critical</span></div>
+          <div class="bug-row"><span class="bug-row-label">Detail</span><span class="bug-row-value">Gender radio inputs (male/female/other) have no <code>&lt;label for="..."&gt;</code> association. Screen readers announce "radio button" with no label text. Clicking visible text does not toggle the radio.</span></div>
+          <div class="bug-row"><span class="bug-row-label">Fix</span><span class="bug-row-value fix">Add <code>id</code> to each input and link via <code>&lt;label for="gender-male"&gt;Male&lt;/label&gt;</code></span></div>
+        </div>
+        <div class="bug-card critical">
+          <div class="bug-header"><div class="bug-title">Bug #3 — Checkboxes Have No Programmatic Labels</div><span class="severity-badge sev-critical">Critical</span></div>
+          <div class="bug-row"><span class="bug-row-label">Detail</span><span class="bug-row-value">Vehicle checkboxes (Bike/Car) have no label association. Screen reader users cannot identify what each checkbox represents.</span></div>
+          <div class="bug-row"><span class="bug-row-label">Fix</span><span class="bug-row-value fix">Add <code>id</code> to each checkbox and wrap with <code>&lt;label for="vehicle-bike"&gt;I have a bike&lt;/label&gt;</code></span></div>
+        </div>
+        <div class="bug-card high">
+          <div class="bug-header"><div class="bug-title">Bug #4 — 4 Forms Using Invalid HTTP Method "LINK"</div><span class="severity-badge sev-high">High</span></div>
+          <div class="bug-row"><span class="bug-row-label">Detail</span><span class="bug-row-value"><code>method="LINK"</code> is not a valid HTML form method. Only GET and POST are valid. Browsers silently fall back to GET — may produce unexpected behaviour.</span></div>
+          <div class="bug-row"><span class="bug-row-label">Fix</span><span class="bug-row-value fix">Replace <code>method="LINK"</code> with <code>method="GET"</code> or <code>method="POST"</code>.</span></div>
+        </div>
+        <div class="bug-card high">
+          <div class="bug-header"><div class="bug-title">Bug #5 — id="name" and id="email" Both Duplicated</div><span class="severity-badge sev-high">High</span></div>
+          <div class="bug-row"><span class="bug-row-label">Detail</span><span class="bug-row-value">Both <code>id="name"</code> and <code>id="email"</code> appear more than once on the same page. Breaks label associations and automation selectors.</span></div>
+          <div class="bug-row"><span class="bug-row-label">Fix</span><span class="bug-row-value fix">Ensure all IDs are unique across the entire page.</span></div>
+        </div>
+        <div class="bug-card high">
+          <div class="bug-header"><div class="bug-title">Bug #6 — Select Dropdown Has No Label</div><span class="severity-badge sev-high">High</span></div>
+          <div class="bug-row"><span class="bug-row-label">Detail</span><span class="bug-row-value">Car brand dropdown (Volvo/Saab/Opel/Audi) has no <code>&lt;label&gt;</code> or <code>aria-label</code>. Screen readers announce "combobox" with no context.</span></div>
+          <div class="bug-row"><span class="bug-row-label">Fix</span><span class="bug-row-value fix">Add <code>&lt;label for="car-select"&gt;Choose a car brand&lt;/label&gt;</code> and <code>id="car-select"</code> to the select element.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div class="section-icon icon-access">♿</div><div class="section-title">Accessibility Auditor — WCAG 2.1 AA</div></div>
+      <div class="section-body">
+        <table>
+          <thead><tr><th>Issue</th><th>WCAG Criterion</th><th>Severity</th></tr></thead>
+          <tbody>
+            <tr><td>5 elements share id="button1" — breaks AT parsing</td><td>4.1.1 Parsing</td><td><span class="severity-badge sev-critical">Critical</span></td></tr>
+            <tr><td>Radio buttons not programmatically labelled</td><td>1.3.1 Info & Relationships</td><td><span class="severity-badge sev-critical">Critical</span></td></tr>
+            <tr><td>Checkboxes not programmatically labelled</td><td>1.3.1 Info & Relationships</td><td><span class="severity-badge sev-critical">Critical</span></td></tr>
+            <tr><td>Select dropdown has no label</td><td>1.3.1 Info & Relationships</td><td><span class="severity-badge sev-high">High</span></td></tr>
+            <tr><td>Social media links use aria-hidden on text content</td><td>2.4.6 Headings and Labels</td><td><span class="severity-badge sev-high">High</span></td></tr>
+            <tr><td>Logo link has no accessible name</td><td>1.1.1 Non-text Content</td><td><span class="severity-badge sev-medium">Medium</span></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:16px;padding:12px 16px;background:#0f172a;border-radius:6px;font-size:12px;color:#64748b;">
+          Accessibility Score: <strong style="color:#f87171;">3/10</strong> &nbsp;·&nbsp; Status: <strong style="color:#f87171;">Fails WCAG 2.1 AA — Multiple critical structural violations</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div class="section-icon icon-verdict">✓</div><div class="section-title">5 Quick Wins — Under 30 Minutes Each</div></div>
+      <div class="section-body">
+        <div class="quick-wins">
+          <h4>Fix these first</h4>
+          <div class="win-item"><div class="win-num">1</div><div class="win-text">Make all button IDs unique — rename button1 duplicates to button1-b, button1-c, etc.</div></div>
+          <div class="win-item"><div class="win-num">2</div><div class="win-text">Add <code>for</code>/<code>id</code> pairs to all 3 radio button labels</div></div>
+          <div class="win-item"><div class="win-num">3</div><div class="win-text">Add <code>for</code>/<code>id</code> pairs to both checkbox labels</div></div>
+          <div class="win-item"><div class="win-num">4</div><div class="win-text">Replace <code>method="LINK"</code> with <code>method="GET"</code> on all 4 affected forms</div></div>
+          <div class="win-item"><div class="win-num">5</div><div class="win-text">Add <code>&lt;label&gt;</code> or <code>aria-label</code> to the car brand select dropdown</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="footer">
+    <div class="footer-left"><div class="footer-name">Ramone Scott — QA Engineer</div><div>Available for freelance audits · 24–48hr turnaround · Jamaica</div></div>
+    <div class="footer-right"><div>ultimateqa.com</div><div>© 2026 Ramone Scott</div></div>
+  </div>
+</div>
+</body>
+</html>
