@@ -1,0 +1,247 @@
+QA AUDIT REPORT — HTML ELEMENTS & ACCESSIBILITY
+=================================================
+Site    : ultimateqa.com/simple-html-elements-for-automation/
+Audited : 2026-04-26
+Type    : UI / HTML Elements / Automation Practice Page
+Stack   : WordPress / Divi Builder
+Auditor : QA Specialist (Agency Agents Framework)
+
+================================================================
+
+EVIDENCE COLLECTOR — BUG REPORT
+---------------------------------
+
+BUG #1 — Duplicate ID: id="button1" Appears 5 Times
+  Location : Multiple sections across the page
+  Detail   : The attribute id="button1" is used on 5 separate button
+             elements. HTML IDs must be unique per page.
+             - getElementById("button1") returns ONLY the first match
+             - CSS targeting #button1 applies to all 5 (unintended)
+             - Automation selectors using ID will always grab wrong element
+             - Accessibility: screen readers cannot distinguish elements
+  Severity : CRITICAL
+  Fix      : Assign unique IDs to each button:
+             button1, button1-xpath-1, button1-xpath-2, etc.
+
+BUG #2 — Duplicate ID: id="name" Appears 2 Times
+  Location : Contact form and other section
+  Detail   : id="name" used more than once on the same page.
+             Breaks label association, form autofill, and automation
+             selectors that target by ID.
+  Severity : HIGH
+  Fix      : Ensure all IDs on the page are unique.
+
+BUG #3 — Duplicate ID: id="email" Appears 2 Times
+  Location : Contact form and other section
+  Detail   : Same issue as id="name". Both duplicate IDs break
+             label-for associations and cause unpredictable
+             automation selector behaviour.
+  Severity : HIGH
+  Fix      : Rename duplicate IDs to be unique across the page.
+
+BUG #4 — Invalid Form Method: method="LINK" Used 4 Times
+  Location : 4 separate form elements on the page
+  Detail   : HTML forms only support method="GET" and method="POST".
+             method="LINK" is not a valid HTTP method for HTML forms.
+             Browsers silently fall back to GET when an invalid method
+             is used, which may produce unexpected behaviour.
+             This is either an intentional bug (practice site) or a
+             misconfiguration that would fail in production.
+  Severity : HIGH
+  Fix      : Replace method="LINK" with method="GET" or method="POST"
+             as appropriate for each form's intent.
+
+BUG #5 — Radio Buttons Have No Associated Labels
+  Location : "Radio buttons" section — gender inputs
+  Detail   : The three radio inputs (male, female, other) use
+             name="gender" but have no <label for="..."> elements
+             linked to them. The visible text "Male", "Female", "Other"
+             is not programmatically associated with the inputs.
+             Clicking the label text does not toggle the radio button.
+  Severity : HIGH
+  Fix      : Wrap each input in a label or use for/id association:
+             <label for="gender-male">Male</label>
+             <input type="radio" id="gender-male" name="gender" value="male">
+
+BUG #6 — Checkboxes Have No Associated Labels
+  Location : "Checkboxes" section — vehicle inputs
+  Detail   : Checkboxes for "I have a bike" and "I have a car" have
+             no <label for="..."> linked via ID. Text adjacent to the
+             checkbox is not programmatically associated.
+  Severity : HIGH
+  Fix      : Add id attributes to checkbox inputs and link labels:
+             <input type="checkbox" id="vehicle-bike" name="vehicle" value="Bike">
+             <label for="vehicle-bike">I have a bike</label>
+
+BUG #7 — Select Dropdown Has No Associated Label
+  Location : "Dropdown" section
+  Detail   : The <select> element for Volvo/Saab/Opel/Audi has no
+             <label> or aria-label. Screen readers announce the
+             dropdown with no context about what it represents.
+  Severity : MEDIUM
+  Fix      : Add a visible or aria label:
+             <label for="car-select">Choose a car brand</label>
+             <select id="car-select">...</select>
+
+BUG #8 — Lazy-Loaded Images Use data-src (JS Required)
+  Location : Product/content images across the page
+  Detail   : Images use data-src= instead of src= for lazy loading.
+             Without JavaScript, all lazy-loaded images fail to display.
+             Users with JS disabled or slow connections see broken images.
+  Severity : MEDIUM
+  Fix      : Ensure a native loading="lazy" src= fallback exists for
+             critical images.
+
+
+================================================================
+
+ACCESSIBILITY AUDITOR — WCAG 2.1 AA REPORT
+--------------------------------------------
+
+ISSUE #1 — 5 Elements Share id="button1"
+  WCAG    : 4.1.1 Parsing
+  Detail  : Duplicate IDs cause failures in assistive technology
+            parsing. Screen readers may skip or misidentify elements.
+  Severity: CRITICAL
+
+ISSUE #2 — Radio Buttons Not Programmatically Labelled
+  WCAG    : 1.3.1 Info & Relationships
+  Detail  : Visible text labels are not linked to radio inputs via
+            for/id or wrapping label elements. Screen readers announce
+            "radio button" with no associated label text.
+  Severity: CRITICAL
+
+ISSUE #3 — Checkboxes Not Programmatically Labelled
+  WCAG    : 1.3.1 Info & Relationships
+  Detail  : Same issue as radio buttons. Checkbox inputs have no
+            programmatically associated label text.
+  Severity: CRITICAL
+
+ISSUE #4 — Select Dropdown Has No Label
+  WCAG    : 1.3.1 Info & Relationships
+  Detail  : The car brand dropdown has no label. Screen reader users
+            hear "combobox" with no context.
+  Severity: HIGH
+
+ISSUE #5 — Social Media Links Use aria-hidden on Text Content
+  WCAG    : 2.4.6 Headings and Labels
+  Detail  : Footer social links (LinkedIn, Twitter, Facebook, Instagram,
+            YouTube) wrap their "Follow" text in spans with
+            aria-hidden="true". Screen readers may only announce the
+            icon character (e.g., %) instead of the link purpose.
+  Severity: HIGH
+  Fix     : Move aria-hidden to the decorative icon only. Ensure
+            each link has a visible or aria-label describing destination.
+
+ISSUE #6 — Logo Image Has Empty Alt Text
+  WCAG    : 1.1.1 Non-text Content
+  Detail  : Site logo uses alt="" which is correct for decorative images
+            but if the logo is also a home link, the link has no
+            accessible name for screen readers.
+  Severity: MEDIUM
+  Fix     : If logo is a link, use alt="Ultimate QA - Home" or
+            add aria-label="Home" to the anchor element.
+
+ACCESSIBILITY SCORE: 3/10
+STATUS: FAILS WCAG 2.1 AA — Multiple critical structural violations
+
+
+================================================================
+
+PERFORMANCE BENCHMARKER
+-------------------------
+
+Metric                         Result           Status
+------------------------------------------------------
+Page load (initial request)    Fast             PASS
+Lazy image loading             data-src used    WARN
+  (requires JavaScript — no native fallback)
+Rocket loader JS               Present          WARN
+  (WP Rocket delay script adds render overhead)
+Google Analytics               GA4 (G-tag)      PASS
+  (modern GA4 tag — correctly implemented)
+CDN                            Cloudflare       PASS
+Third-party scripts            Multiple         WARN
+  (Google Fonts, HubSpot forms, WP plugins)
+Font loading                   2x Google Fonts  WARN
+  (Cabin + Muli loaded from external CDN)
+
+
+================================================================
+
+REALITY CHECKER — PRODUCTION READINESS VERDICT
+------------------------------------------------
+
+VERDICT: NEEDS WORK
+
+UI QUALITY SCORE: 4/10
+
+NOTE: This page is an intentional automation practice site.
+The bugs below are real, reproducible, and representative of
+common issues found in production web applications.
+
+CRITICAL — Fails HTML spec and accessibility standards:
+  [1] id="button1" duplicated 5 times — breaks automation + accessibility
+  [2] Radio buttons have no programmatic labels — WCAG fail
+  [3] Checkboxes have no programmatic labels — WCAG fail
+
+HIGH — Significant issues:
+  [4] method="LINK" used on 4 forms — invalid HTTP method
+  [5] id="name" and id="email" both duplicated — breaks selectors
+  [6] Select dropdown has no label — screen reader failure
+  [7] Social media links have aria-hidden on text — accessibility fail
+
+MEDIUM — Should fix:
+  [8] Lazy images require JavaScript — no fallback
+  [9] Logo link has no accessible name
+
+5 QUICK WINS (under 30 minutes each):
+  1. Make all button IDs unique (button1, button1-b, button1-c, etc.)
+  2. Add for/id pairs to all radio button labels
+  3. Add for/id pairs to all checkbox labels
+  4. Replace method="LINK" with method="GET" on 4 forms
+  5. Add <label> or aria-label to the select dropdown
+
+================================================================
+
+APPENDIX — ELEMENTS CATALOGUED
+---------------------------------
+
+Buttons:
+  <button id="button1">Click Me!</button>
+  <button id="button2">Raise</button>
+  <button class="buttonClass">Button</button>
+  <button name="button1">Button</button>
+  <button name="et_builder_submit_button">Email Me!</button>
+  <button id="button1">Xpath Button 1</button>  (x3 — DUPLICATE ID)
+  <button id="button1">Xpath Button 2</button>  (DUPLICATE ID)
+
+Form Methods Found:
+  method="get"   x1  (valid)
+  method="post"  x1  (valid)
+  method="LINK"  x4  (INVALID)
+
+Radio Inputs:
+  <input type="radio" name="gender" value="male">    (no label)
+  <input type="radio" name="gender" value="female">  (no label)
+  <input type="radio" name="gender" value="other">   (no label)
+
+Checkbox Inputs:
+  <input type="checkbox" name="vehicle" value="Bike">  (no label)
+  <input type="checkbox" name="vehicle" value="Car">   (no label)
+
+Dropdown:
+  <select> — Volvo, Saab, Opel, Audi  (no label)
+
+Contact Form Inputs:
+  <input type="text" id="et_pb_contact_name_0" placeholder="Name">
+  <input type="text" id="et_pb_contact_email_0" placeholder="Email Address">
+
+Links (key automation targets):
+  <a id="idExample" href="/button-success">Click this button using "ID"</a>
+  <a id="simpleElementsLink" name="clickableLink" href="/link-success">Click this link</a>
+  <a href="../link-success/">Click me using this link text!</a>
+
+================================================================
+END OF REPORT
+================================================================
